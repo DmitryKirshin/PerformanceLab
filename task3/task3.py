@@ -2,35 +2,36 @@ import json
 import sys
 
 
-def load_json(file_path):
-    with open(file_path, 'r') as file:
-        return json.load(file)
+def fill_report(values_file, tests_file, report_file):
+    with open(values_file, 'r') as f:
+        values_data = json.load(f)
+    with open(tests_file, 'r') as f:
+        tests_data = json.load(f)
+
+    values_dict = {value["id"]: value["value"] for value in values_data["values"]}
+
+    def insert_value(tests):
+        if isinstance(tests, dict):
+            for key in tests:
+                if key == 'id' and tests[key] in values_dict:
+                    tests['value'] = values_dict[tests[key]]
+                elif isinstance(tests[key], dict) or isinstance(tests[key], list):
+                    insert_value(tests[key])
+        elif isinstance(tests, list):
+            for i in range(len(tests)):
+                insert_value(tests[i])
+
+    insert_value(tests_data['tests'])
+
+    with open(report_file, 'w') as f:
+        json.dump(tests_data, f, indent=4)
 
 
-def save_json(data, file_path):
-    with open(file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+if __name__ == '__main__':
+    values_file = sys.argv[1]
+    tests_file = sys.argv[2]
+    report_file = sys.argv[3]
 
-
-def fill_values(tests, values_map):
-    for test in tests:
-        test_id = test.get('id')
-        if test_id in values_map:
-            test['value'] = values_map[test_id]
-        if 'values' in test:
-            fill_values(test['values'], values_map)
-
-
-def main():
-    tests_file = 'tests.json'
-    values_file = 'values.json'
-    report_file = 'report.json'
-    tests_data = load_json(tests_file)
-    values_data = load_json(values_file)
-    values_map = {entry['id']: entry['value'] for entry in values_data['values']}
-    fill_values(tests_data['tests'], values_map)
-    save_json(tests_data, report_file)
-
-
+    fill_report(values_file, tests_file, report_file)
 if __name__ == "__main__":
     main()
