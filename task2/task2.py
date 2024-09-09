@@ -1,16 +1,16 @@
 import sys
 
 
-def read_circle(circle):
-    with open('circle.txt', 'r') as file:
+def read_circle(filename):
+    with open(filename, 'r') as file:
         x, y = map(float, file.readline().strip().split())
         radius = float(file.readline().strip())
     return (x, y), radius
 
 
-def read_points(dot):
+def read_points(filename):
     points = []
-    with open('dot.txt', 'r') as file:
+    with open(filename, 'r') as file:
         for line in file:
             x, y = map(float, line.strip().split())
             points.append((x, y))
